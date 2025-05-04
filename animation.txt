@@ -1,0 +1,52 @@
+#include <GL/glut.h>
+
+float x_pos = -0.9f;   // Starting position
+float step = 0.01f;    // Speed
+
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glLoadIdentity();
+
+    // Draw moving rectangle
+    glTranslatef(x_pos, 0.0f, 0.0f); // Move it
+    glColor3f(1.0, 0.0, 0.0);        // Red color
+    glBegin(GL_QUADS);
+        glVertex2f(-0.1f, -0.1f);
+        glVertex2f( 0.1f, -0.1f);
+        glVertex2f( 0.1f,  0.1f);
+        glVertex2f(-0.1f,  0.1f);
+    glEnd();
+
+    glutSwapBuffers();
+}
+
+void update(int value) {
+    x_pos += step;
+
+    // Reverse if hits edge
+    if (x_pos > 0.8f || x_pos < -0.9f)
+        step = -step;
+
+    glutPostRedisplay();
+    glutTimerFunc(16, update, 0);
+}
+
+void init() {
+    glClearColor(1, 1, 1, 1); // white background
+    gluOrtho2D(-1, 1, -1, 1); // coordinate system
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(500, 500);
+    glutCreateWindow("Simple Animation");
+
+    init();
+    glutDisplayFunc(display);
+    glutTimerFunc(0, update, 0);
+
+    glutMainLoop();
+    return 0;
+}
+
