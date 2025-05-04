@@ -1,0 +1,203 @@
+#include <iostream>
+#include <GL/glut.h>
+#include <cmath>
+using namespace std;
+
+class Transformation {
+public:
+    float x1, y1, x2, y2, x3, y3;
+    float ABC[3][2];
+
+    Transformation() {
+        // Initial coordinates of the triangle
+        x1 = 50; y1 = 150;
+        x2 = 400; y2 = 100;
+        x3 = 200; y3 = 346.41;
+    }
+
+    void init() {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(-1000.0, 1000.0, -1000.0, 1000.0);
+    }
+
+    void display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_LINES);
+        glVertex2i(-1000, 0);
+        glVertex2i(1000, 0);
+        glVertex2i(0, -1000);
+        glVertex2i(0, 1000);
+        glEnd();
+        glFlush();
+
+        draw_original();
+    }
+
+    void draw_original() {
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x3, y3);
+        glEnd();
+        glFlush();
+    }
+
+    // Scaling transformation
+    void scaling() {
+        float sx, sy;
+
+        cout << "Enter the scaling factor sx: ";
+        cin >> sx;
+        cout << "Enter the scaling factor sy: ";
+        cin >> sy;
+
+        ABC[0][0] = x1 * sx;
+        ABC[0][1] = y1 * sy;
+
+        ABC[1][0] = x2 * sx;
+        ABC[1][1] = y2 * sy;
+
+        ABC[2][0] = x3 * sx;
+        ABC[2][1] = y3 * sy;
+
+        glColor3f(0.0, 1.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    // Rotation about arbitrary point
+    void rotation() {
+        float cx, cy, angle;
+
+        cout << "Enter the center of rotation (cx, cy): ";
+        cin >> cx >> cy;
+        cout << "Enter the rotation angle (in degrees): ";
+        cin >> angle;
+
+        // Convert the angle to radians
+        float radians = angle * (M_PI / 180.0);
+
+        // Rotation transformation
+        ABC[0][0] = cx + (x1 - cx) * cos(radians) - (y1 - cy) * sin(radians);
+        ABC[0][1] = cy + (x1 - cx) * sin(radians) + (y1 - cy) * cos(radians);
+
+        ABC[1][0] = cx + (x2 - cx) * cos(radians) - (y2 - cy) * sin(radians);
+        ABC[1][1] = cy + (x2 - cx) * sin(radians) + (y2 - cy) * cos(radians);
+
+        ABC[2][0] = cx + (x3 - cx) * cos(radians) - (y3 - cy) * sin(radians);
+        ABC[2][1] = cy + (x3 - cx) * sin(radians) + (y3 - cy) * cos(radians);
+
+        glColor3f(0.0, 0.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    // Reflection transformation
+    void reflection() {
+        int axis;
+
+        cout << "Enter the reflection axis (1 for X-axis, 2 for Y-axis, 3 for Origin): ";
+        cin >> axis;
+
+        if (axis == 1) {
+            // Reflection over the X-axis
+            ABC[0][0] = x1;
+            ABC[0][1] = -y1;
+
+            ABC[1][0] = x2;
+            ABC[1][1] = -y2;
+
+            ABC[2][0] = x3;
+            ABC[2][1] = -y3;
+        }
+        else if (axis == 2) {
+            // Reflection over the Y-axis
+            ABC[0][0] = -x1;
+            ABC[0][1] = y1;
+
+            ABC[1][0] = -x2;
+            ABC[1][1] = y2;
+
+            ABC[2][0] = -x3;
+            ABC[2][1] = y3;
+        }
+        else if (axis == 3) {
+            // Reflection over the Origin
+            ABC[0][0] = -x1;
+            ABC[0][1] = -y1;
+
+            ABC[1][0] = -x2;
+            ABC[1][1] = -y2;
+
+            ABC[2][0] = -x3;
+            ABC[2][1] = -y3;
+        }
+
+        glColor3f(1.0, 1.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+};
+
+Transformation transformation;
+
+void display_wrapper() {
+    transformation.display();
+}
+
+void menu(int key) {
+    switch (key) {
+    case 1:
+        transformation.scaling();
+        break;
+    case 2:
+        transformation.rotation();
+        break;
+    case 3:
+        transformation.reflection();
+        break;
+    case 4:
+        exit(0);
+    }
+}
+
+int main(int argc, char* argv[]) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(1000, 1000);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("2D Transformation");
+    transformation.init();
+    glutDisplayFunc(display_wrapper); 
+    
+    int submenu_id = glutCreateMenu(menu);
+    glutAddMenuEntry("------MENU------", 0);
+    glutAddMenuEntry("1) SCALING", 1);
+    glutAddMenuEntry("2) ROTATION", 2);
+    glutAddMenuEntry("3) REFLECTION", 3);
+
+    int menu_id = glutCreateMenu(menu);
+    glutAddSubMenu("DRAW", submenu_id);
+    glutAddMenuEntry("EXIT", 4);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+    glutMainLoop();
+    return 0;
+}
