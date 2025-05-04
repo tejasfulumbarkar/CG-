@@ -1,0 +1,219 @@
+#include <iostream>
+#include <GL/glut.h>
+#include <cmath>
+using namespace std;
+
+class Transformation {
+public:
+    float x1, y1, x2, y2, x3, y3;
+    float tx, ty;
+    float ABC[3][2];
+
+    Transformation() {
+        x1 = 50; y1 = 150;
+        x2 = 400; y2 = 100;
+        x3 = 200; y3 = 346.41;
+    }
+
+    void init() {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluOrtho2D(-1000.0, 1000.0, -1000.0, 1000.0);
+    }
+
+    void display() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_LINES);
+        glVertex2i(-1000, 0);
+        glVertex2i(1000, 0);
+        glVertex2i(0, -1000);
+        glVertex2i(0, 1000);
+        glEnd();
+        glFlush();
+
+        draw_original();
+    }
+
+    void draw_original() {
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glVertex2f(x3, y3);
+        glEnd();
+        glFlush();
+    }
+
+    void translation() {
+        cout << "Enter the translation factor tx: ";
+        cin >> tx;
+        cout << "Enter the translation factor ty: ";
+        cin >> ty;
+
+        ABC[0][0] = x1 + tx;
+        ABC[0][1] = y1 + ty;
+
+        ABC[1][0] = x2 + tx;
+        ABC[1][1] = y2 + ty;
+
+        ABC[2][0] = x3 + tx;
+        ABC[2][1] = y3 + ty;
+
+        glColor3f(1.0, 1.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    void scaling() {
+        float sx, sy;
+
+        cout << "Enter the scaling factor sx: ";
+        cin >> sx;
+        cout << "Enter the scaling factor sy: ";
+        cin >> sy;
+
+        ABC[0][0] = x1 * sx;
+        ABC[0][1] = y1 * sy;
+
+        ABC[1][0] = x2 * sx;
+        ABC[1][1] = y2 * sy;
+
+        ABC[2][0] = x3 * sx;
+        ABC[2][1] = y3 * sy;
+
+        glColor3f(0.0, 1.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    void shearing() {
+        float shx, shy;
+
+        cout << "Enter shearing factor shx: ";
+        cin >> shx;
+        cout << "Enter shearing factor shy: ";
+        cin >> shy;
+
+        ABC[0][0] = x1 + shx * y1; 
+        ABC[0][1] = y1 + shy * x1;
+
+        ABC[1][0] = x2 + shx * y2;
+        ABC[1][1] = y2 + shy * x2;
+
+        ABC[2][0] = x3 + shx * y3;
+        ABC[2][1] = y3 + shy * x3;
+
+        glColor3f(1.0, 0.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    void reflection_x() {
+        // Reflection across X-axis (y' = -y)
+        ABC[0][0] = x1;
+        ABC[0][1] = -y1;
+
+        ABC[1][0] = x2;
+        ABC[1][1] = -y2;
+
+        ABC[2][0] = x3;
+        ABC[2][1] = -y3;
+
+        glColor3f(0.0, 1.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+
+    void reflection_y() {
+        // Reflection across Y-axis (x' = -x)
+        ABC[0][0] = -x1;
+        ABC[0][1] = y1;
+
+        ABC[1][0] = -x2;
+        ABC[1][1] = y2;
+
+        ABC[2][0] = -x3;
+        ABC[2][1] = y3;
+
+        glColor3f(0.0, 0.0, 1.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(ABC[0][0], ABC[0][1]);
+        glVertex2f(ABC[1][0], ABC[1][1]);
+        glVertex2f(ABC[2][0], ABC[2][1]);
+        glEnd();
+        glFlush();
+    }
+};
+
+Transformation transformation;
+
+void display_wrapper() {
+    transformation.display();
+}
+
+void menu(int key) {
+    switch (key) {
+    case 1:
+        transformation.translation();
+        break;
+    case 2:
+        transformation.scaling();
+        break;
+    case 3:
+        transformation.shearing();
+        break;
+    case 4:
+        transformation.reflection_x();  // Reflection across X-axis
+        break;
+    case 5:
+        transformation.reflection_y();  // Reflection across Y-axis
+        break;
+    case 6:
+        exit(0);
+    }
+}
+
+int main(int argc, char* argv[]) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(1000, 1000);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("2d transformation");
+    transformation.init();
+    glutDisplayFunc(display_wrapper);
+
+    int submenu_id = glutCreateMenu(menu);
+    glutAddMenuEntry("------MENU------", 0);
+    glutAddMenuEntry("1)TRANSLATION", 1);
+    glutAddMenuEntry("2)SCALING", 2);
+    glutAddMenuEntry("3)SHEARING", 3);
+    glutAddMenuEntry("4)REFLECTION X", 4);  // Reflection X-axis
+    glutAddMenuEntry("5)REFLECTION Y", 5);  // Reflection Y-axis
+
+    int menu_id = glutCreateMenu(menu);
+    glutAddSubMenu("DRAW", submenu_id);
+    glutAddMenuEntry("EXIT", 6);
+    glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+    glutMainLoop();
+    return 0;
+}
