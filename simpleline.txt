@@ -1,0 +1,35 @@
+
+#include <iostream>
+using namespace std;
+#include <GL/glut.h>
+void myInit()
+{
+glClearColor(1.0, 1.0, 1.0, 0); // Set background color to white
+glColor3f(0.0, 0.0, 0.0); // Set drawing color to black
+glLineWidth(2.0); // Set the line width
+gluOrtho2D(0, 640, 0, 480); // Set the 2D orthogonal view
+}
+void MyDisplay()
+{
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear screen
+// Draw a single line from (100, 100) to (500, 300)
+glBegin(GL_LINES);
+glVertex2d(100, 100); // First point
+glVertex2d(500, 300); // Second point
+glEnd();
+glFlush(); // Ensure everything is rendered
+}
+int main(int argc, char **argv)
+{
+glutInit(&argc, argv);
+glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+glutInitWindowPosition(0, 0);
+glutInitWindowSize(640, 480);
+glutCreateWindow("Single Line");
+myInit();
+glutDisplayFunc(MyDisplay);
+glutMainLoop();
+return 0;
+}
+
+
