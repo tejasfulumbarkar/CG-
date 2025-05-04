@@ -1,0 +1,119 @@
+#include <GL/glut.h>
+#include <iostream>
+#include <queue>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+// Square vertices
+Point polygon[] = {{100, 100}, {300, 100}, {300, 300}, {100, 300}};
+int n = 4; // Number of vertices
+
+// Function to set pixel color
+void setPixel(int x, int y, float r, float g, float b) {
+    glColor3f(r, g, b);
+    glBegin(GL_POINTS);
+    glVertex2i(x, y);
+    glEnd();
+    glFlush();
+}
+
+// Flood Fill (4-connected)
+void floodFill4(int x, int y, float oldR, float oldG, float oldB, float fillR, float fillG, float fillB) {
+    queue<Point> q;
+    q.push({x, y});
+
+    while (!q.empty()) {
+        Point p = q.front(); q.pop();
+
+        unsigned char pixel[3];
+        glReadPixels(p.x, p.y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        float r = pixel[0] / 255.0, g = pixel[1] / 255.0, b = pixel[2] / 255.0;
+
+        if (r == oldR && g == oldG && b == oldB) {
+            setPixel(p.x, p.y, fillR, fillG, fillB);
+            q.push({p.x + 1, p.y});
+            q.push({p.x - 1, p.y});
+            q.push({p.x, p.y + 1});
+            q.push({p.x, p.y - 1});
+        }
+    }
+}
+
+// Boundary Fill (4-connected)
+void boundaryFill4(int x, int y, float boundaryR, float boundaryG, float boundaryB, float fillR, float fillG, float fillB) {
+    queue<Point> q;
+    q.push({x, y});
+
+    while (!q.empty()) {
+        Point p = q.front(); q.pop();
+        unsigned char pixel[3];
+        glReadPixels(p.x, p.y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+        float r = pixel[0] / 255.0, g = pixel[1] / 255.0, b = pixel[2] / 255.0;
+
+        if ((r != boundaryR || g != boundaryG || b != boundaryB) && (r != fillR || g != fillG || b != fillB)) {
+            setPixel(p.x, p.y, fillR, fillG, fillB);
+            q.push({p.x + 1, p.y});
+            q.push({p.x - 1, p.y});
+            q.push({p.x, p.y + 1});
+            q.push({p.x, p.y - 1});
+        }
+    }
+}
+
+// Function to draw the square
+void drawSquare() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_QUADS);
+    for (int i = 0; i < n; i++)
+        glVertex2i(polygon[i].x, polygon[i].y);
+    glEnd();
+
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < n; i++)
+        glVertex2i(polygon[i].x, polygon[i].y);
+    glEnd();
+    glFlush();
+}
+
+// Menu function
+void menuHandler(int choice) {
+    Point seed = {200, 200}; // Center point of square
+    if (choice == 1) {
+        floodFill4(seed.x, seed.y, 1, 1, 1, 1, 0, 0); // Red fill
+    } else if (choice == 2) {
+        boundaryFill4(seed.x, seed.y, 0, 0, 0, 0, 0, 1); // Blue fill
+    }
+}
+
+// Create right-click menu
+void createMenu() {
+    glutCreateMenu(menuHandler);
+    glutAddMenuEntry("Flood Fill", 1);
+    glutAddMenuEntry("Boundary Fill", 2);
+    glutAttachMenu(GLUT_RIGHT_BUTTON); // Right-click to show menu
+}
+
+void display() {
+    drawSquare();
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(500, 500);
+    glutCreateWindow("Polygon Fill Menu");
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    gluOrtho2D(0, 500, 0, 500);
+    
+    glutDisplayFunc(display);
+    createMenu(); // Attach menu to right-click
+    glutMainLoop();
+    return 0;
+}
+

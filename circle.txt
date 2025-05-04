@@ -1,0 +1,90 @@
+
+
+#include <GL/glut.h>
+#include <iostream>
+
+int x_center, y_center, radius;
+
+void plotCirclePoints(int x, int y) {
+    glBegin(GL_POINTS);
+    glVertex2i(x_center + x, y_center + y);
+    glVertex2i(x_center - x, y_center + y);
+    glVertex2i(x_center + x, y_center - y);
+    glVertex2i(x_center - x, y_center - y);
+    glVertex2i(x_center + y, y_center + x);
+    glVertex2i(x_center - y, y_center + x);
+    glVertex2i(x_center + y, y_center - x);
+    glVertex2i(x_center - y, y_center - x);
+    glEnd();
+}
+
+void bresenhamCircle() {
+    int x = 0, y = radius;
+    int p = 3 - 2 * radius;
+
+    plotCirclePoints(x, y);
+
+    while (x <= y) {
+        x++;
+
+        if (p <= 0) {
+            p = p + 4 * x + 6;
+        } else {
+            y--;
+            p = p + 4 * (x - y) + 10;
+        }
+
+        plotCirclePoints(x, y);
+    }
+}
+
+void drawAxes() {
+    glBegin(GL_LINES);
+    glVertex2i(-250, 0); 
+    glVertex2i(250, 0); 
+    glVertex2i(0, -250); 
+    glVertex2i(0, 250); 
+    glEnd();
+}
+
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glColor3f(0.0, 0.0, 0.0);
+    drawAxes(); 
+
+    glColor3f(0.0, 0.0, 0.0);
+    bresenhamCircle(); 
+
+    glFlush(); 
+}
+
+void initOpenGL() {
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glPointSize(2.0);
+    glMatrixMode(GL_PROJECTION); 
+    
+    gluOrtho2D(-250.0, 250.0, -250.0, 250.0);  // Adjusting the projection to fit the axes
+}
+
+int main(int argc, char** argv) {
+    std::cout << "Enter the center coordinates (x, y) of the circle: ";
+    std::cin >> x_center >> y_center;
+    std::cout << "Enter the radius of the circle: ";
+    std::cin >> radius;
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(500, 500);
+    glutCreateWindow("Bresenham Circle Drawing Algorithm");
+
+    initOpenGL();
+    glutDisplayFunc(display);
+    glutMainLoop();
+
+    return 0;
+}
+
+
+
+
