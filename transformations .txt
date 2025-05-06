@@ -1,0 +1,194 @@
+#include <GL/glut.h>
+#include <iostream>
+#include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+using namespace std;
+
+int Ax = 340, Ay = 340;
+int Bx = 400, By = 360;
+int Cx = 380, Cy = 400;
+
+void scaling(float Sx, float Sy) {
+    Ax = ((Ax - 300) * Sx) + 300;
+    Bx = ((Bx - 300) * Sx) + 300;
+    Cx = ((Cx - 300) * Sx) + 300;
+    Ay = ((Ay - 300) * Sy) + 300;
+    By = ((By - 300) * Sy) + 300;
+    Cy = ((Cy - 300) * Sy) + 300;
+}
+
+void rotation(int deg, int x, int y) {
+    float rad = deg * M_PI / 180.0;
+    Ax -= 300; Ay -= 300;
+    Bx -= 300; By -= 300;
+    Cx -= 300; Cy -= 300;
+
+    float nAx = x + (Ax - x) * cos(rad) - (Ay - y) * sin(rad);
+    float nAy = y + (Ax - x) * sin(rad) + (Ay - y) * cos(rad);
+    float nBx = x + (Bx - x) * cos(rad) - (By - y) * sin(rad);
+    float nBy = y + (Bx - x) * sin(rad) + (By - y) * cos(rad);
+    float nCx = x + (Cx - x) * cos(rad) - (Cy - y) * sin(rad);
+    float nCy = y + (Cx - x) * sin(rad) + (Cy - y) * cos(rad);
+
+    Ax = nAx + 300; Ay = nAy + 300;
+    Bx = nBx + 300; By = nBy + 300;
+    Cx = nCx + 300; Cy = nCy + 300;
+}
+
+void reflection(int reflectX, int reflectY) {
+    Ax -= 300; Ay -= 300;
+    Bx -= 300; By -= 300;
+    Cx -= 300; Cy -= 300;
+
+    if (reflectX) {
+        Ay = -Ay;
+        By = -By;
+        Cy = -Cy;
+    }
+    if (reflectY) {
+        Ax = -Ax;
+        Bx = -Bx;
+        Cx = -Cx;
+    }
+
+    Ax += 300; Ay += 300;
+    Bx += 300; By += 300;
+    Cx += 300; Cy += 300;
+}
+
+void keyboard(unsigned char key, int x, int y) {
+    switch (key) {
+    case 's': {
+        cout << "Scaling is opted" << endl;
+        float Sx, Sy;
+        cout << "Enter Sx: ";
+        cin >> Sx;
+        cout << "Enter Sy: ";
+        cin >> Sy;
+        scaling(Sx, Sy);
+        break;
+    }
+    case 'r': {
+        int deg, x, y;
+        cout << "Rotation is opted" << endl;
+        cout << "Enter degree of rotation (anticlockwise): ";
+        cin >> deg;
+        cout << "Enter X coordinate of axis of rotation: ";
+        cin >> x;
+        cout << "Enter Y coordinate of axis of rotation: ";
+        cin >> y;
+        rotation(deg, x, y);
+        break;
+    }
+    case 'f': {
+        char choice;
+        cout << "Reflection is opted" << endl;
+        cout << "Enter 'x' to reflect about X axis, 'y' for Y axis, or 'b' for both: ";
+        cin >> choice;
+
+        if (choice == 'x') {
+            reflection(1, 0);
+        } else if (choice == 'y') {
+            reflection(0, 1);
+        } else if (choice == 'b') {
+            reflection(1, 1);
+        } else {
+            cout << "Invalid input. No reflection applied." << endl;
+        }
+        break;
+    }
+    }
+    glutPostRedisplay();
+}
+
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw original triangle faintly
+    glLineWidth(2);
+    glColor3f(1.0, 0.78, 0.78);
+    glBegin(GL_LINES);
+    glVertex2i(340, 340);
+    glVertex2i(400, 360);
+    glEnd();
+
+    glColor3f(0.78, 1.0, 0.78);
+    glBegin(GL_LINES);
+    glVertex2i(400, 360);
+    glVertex2i(380, 400);
+    glEnd();
+
+    glColor3f(0.78, 0.78, 1.0);
+    glBegin(GL_LINES);
+    glVertex2i(380, 400);
+    glVertex2i(340, 340);
+    glEnd();
+
+    // Draw transformed triangle
+    glLineWidth(2);
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2i(Ax, Ay);
+    glVertex2i(Bx, By);
+    glEnd();
+
+    glColor3f(0.0, 1.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2i(Bx, By);
+    glVertex2i(Cx, Cy);
+    glEnd();
+
+    glColor3f(0.0, 0.0, 1.0);
+    glBegin(GL_LINES);
+    glVertex2i(Cx, Cy);
+    glVertex2i(Ax, Ay);
+    glEnd();
+
+    // Draw axes
+    glLineWidth(4);
+    glColor3f(0.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2i(300, 0);
+    glVertex2i(300, 600);
+    glVertex2i(0, 300);
+    glVertex2i(600, 300);
+    glEnd();
+
+    // Draw grid
+    glLineWidth(1);
+    glColor3f(0.5, 0.5, 0.5);
+    glBegin(GL_LINES);
+    for (int i = 0; i <= 20; i++) {
+        glVertex2i(0, i * 30);
+        glVertex2i(600, i * 30);
+        glVertex2i(i * 30, 0);
+        glVertex2i(i * 30, 600);
+    }
+    glEnd();
+
+    glFlush();
+}
+
+void initialize() {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, 600, 0, 600);
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+}
+
+int main(int argc, char** argv) {
+    cout << "Enter s for scaling, r for rotation and f for reflection" << endl;
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE);
+    glutInitWindowSize(600, 600);
+    glutInitWindowPosition(800, 100);
+    glutCreateWindow("Transformations");
+    initialize();
+    glutDisplayFunc(display);
+    glutKeyboardFunc(keyboard);
+    glutMainLoop();
+    return 0;
+}
